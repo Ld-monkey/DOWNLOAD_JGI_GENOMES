@@ -8,7 +8,7 @@ Dans le cadre de mon stage de métagenomique et en me basant sur le script perl 
 
 Ce travail est une adaptation du travail original de Guileonard dans le repository suivant : https://github.com/guyleonard/get_jgi_genomes .
 
-## Pourquoi ? :question:
+## Pourquoi :question:
 
    - [ ] Car le langague Python est un langague supérieur a Perl (Python > Perl). :satisfied:
    - [ ] Pour corriger certaines erreurs de permission lors du téléchargement du fichier xml sous Debian.
