@@ -16,3 +16,7 @@ Ce travail est une adaptation du travail original de Guileonard dans le reposito
    - [x] Pour l'intrégrer dans mon pipeline de métagenomique : https://github.com/Zygnematophyce/CLINICAL_METAGENOMICS . 
    
 ## Utilisation :mortar_board:
+
+```bash
+python src/main_download_jgi_genomes.py -u <username> -p <password>
+```

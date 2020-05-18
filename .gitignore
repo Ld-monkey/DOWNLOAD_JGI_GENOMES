@@ -1,2 +1,5 @@
 # Ignore cookie
 cookies
+
+# Ignore .xml file
+*.xml
