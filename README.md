@@ -10,9 +10,9 @@ Ce travail est une adaptation du travail original de Guileonard dans le reposito
 
 ## Pourquoi ? :question:
 
-   [ ] Car le langague Python est un langague supérieur a Perl (Python > Perl). :satisfied:
-   [ ] Pour corriger certaines erreurs de permission lors du téléchargement du fichier xml sous Debian.
-   [x] J'aime tout reprogrammer pour tout bien comprendre en tant que bio-informaticien novice <del>et perde mon temps a ça</del>.
-   [x] Pour l'intrégrer dans mon pipeline de métagenomique : https://github.com/Zygnematophyce/CLINICAL_METAGENOMICS . 
+   - [ ] Car le langague Python est un langague supérieur a Perl (Python > Perl). :satisfied:
+   - [ ] Pour corriger certaines erreurs de permission lors du téléchargement du fichier xml sous Debian.
+   - [x] J'aime tout reprogrammer pour tout bien comprendre en tant que bio-informaticien novice <del>et perde mon temps a ça</del>.
+   - [x] Pour l'intrégrer dans mon pipeline de métagenomique : https://github.com/Zygnematophyce/CLINICAL_METAGENOMICS . 
    
 ## Utilisation :mortar_board:
