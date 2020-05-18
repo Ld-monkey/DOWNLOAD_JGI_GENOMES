@@ -20,3 +20,21 @@ Ce travail est une adaptation du travail original de Guileonard dans le reposito
 ```bash
 python src/main_download_jgi_genomes.py -u <username> -p <password>
 ```
+
+## Aide 
+
+```bash
+Download JGI genomes !
+usage: main_download_jgi_genomes.py [-h] [-u U] [-p P] [-c C] [-db DB] [-l L]
+
+main_download_jgi_genomes.py
+
+optional arguments:
+  -h, --help  show this help message and exit
+  -u U        Username.
+  -p P        Password.
+  -c C        Cookies.
+  -db DB      Which databases between : mycocosm, phycocosm, phytozome or
+              metazome.
+  -l L        Only the list xml of database.
+```

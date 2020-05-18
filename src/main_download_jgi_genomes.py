@@ -20,16 +20,22 @@ def arguments():
     parser.add_argument("-p",
                         help="Password.",
                         type=str)
-    parser.add_argument("-c",
-                        help="Cookies.",
-                        type=str)
+    # parser.add_argument("-c",
+    #                     help="Cookies.",
+    #                     type=str)
     parser.add_argument("-db",
-                        help="Wich database : mycocosm, phycocosm, phytozome or metazome.",
+                        help="Which databases between : mycocosm, phycocosm,\
+                        phytozome or metazome.",
+                        choices=["fungi", "phycocosm"],
                         type=str)
-    parser.add_argument("-l",
-                        help="Only the list xml of database.")
+    # parser.add_argument("-l",
+    #                     help="Only the list xml of database.")
     args = parser.parse_args()
-    return args.u, args.p
+
+    # Check if all parameters have a value.
+    if not any(vars(args).values()):
+        parser.print_help()
+    return args.u, args.p, args.db
 
 def download_cookie(username, password):
     """ Method to download cookie ."""
@@ -60,7 +66,7 @@ if __name__ == "__main__":
     print("Download JGI genomes !")
 
     # Get all parameters.
-    JGI_USERNAME, JGI_PASSWORD = arguments()
+    JGI_USERNAME, JGI_PASSWORD, DATABASE = arguments()
 
     # Check if cookie already exists.
     if os.path.isfile("cookies"):
@@ -70,7 +76,7 @@ if __name__ == "__main__":
         download_cookie(JGI_USERNAME, JGI_PASSWORD)
 
     # Test to download xml file for fungi database (mycocosm).
-    if os.path.isfile("fungi"+"_file.xml"):
+    if os.path.isfile(str(DATABASE)+"_files.xml"):
         print("Dababase with xml file already exists")
     else:
-        download_xml("fungi", "cookies")
+        download_xml(DATABASE, "cookies")
