@@ -9,6 +9,7 @@ program : main_download_jgi_genomes.py
 import argparse
 import subprocess
 import os
+import xml.etree.ElementTree as ET
 
 #e.g : get_jgi_genomes [-u <username> -p <password>] | [-c <cookies>] [-f | -a | -P 12 | -m 3] (-l)\n\n";
 def arguments():
@@ -62,6 +63,16 @@ def download_xml(database, cookie):
     subprocess.run(["sed -i \'s/&quot;//g\' "+database+"_files.xml"], shell=True)
     print("Download {} xml done !".format(database))
 
+def parser_mycocosm_xml(xml_file):
+    """ Method to parser and selected all mycocosm url links."""
+
+    # Load xml file and create a tree + root of xml file.
+    tree = ET.parse(xml_file)
+    root = tree.getroot()
+
+    for child in root:
+        print(child.tag, child.attrib)
+
 if __name__ == "__main__":
     print("Download JGI genomes !")
 
@@ -80,3 +91,9 @@ if __name__ == "__main__":
         print("Dababase with xml file already exists")
     else:
         download_xml(DATABASE, "cookies")
+
+    XML_FILE = DATABASE+"_files.xml"
+    print("xml file is", XML_FILE)
+
+    # Parser mycocosm xm file.
+    parser_mycocosm_xml(XML_FILE)
