@@ -63,15 +63,39 @@ def download_xml(database, cookie):
     subprocess.run(["sed -i \'s/&quot;//g\' "+database+"_files.xml"], shell=True)
     print("Download {} xml done !".format(database))
 
-def parser_mycocosm_xml(xml_file):
-    """ Method to parser and selected all mycocosm url links."""
+def get_url_CDS_mycocosm_xml(xml_file):
+    """ Method that return a list of urls for coding sequences of mycocosm.  """
 
-    # Load xml file and create a tree + root of xml file.
+    # Load xml file and create a tree and get root of xml file.
     tree = ET.parse(xml_file)
     root = tree.getroot()
 
-    for child in root:
-        print(child.tag, child.attrib)
+    # List with all urls of coding sequences of mycocosm.
+    url_CDS = list()
+
+    # Filtering all sequences that we don't want.
+    filtering_sequence = ["primary", "secondary", "alleles", "diploid", "old"]
+
+    # The xpath of coding sequence in xml file.
+    query_coding_sequence = '.[@name="fungi"]'\
+        '/folder[@name="Files"]'\
+        '/folder[@name="Annotation"]'\
+        '/folder[@name="Filtered Models (best)"]'\
+        '/folder[@name="CDS"]'
+
+    # For each coding sequence recover all urls attributes.
+    for CDS in root.find(query_coding_sequence):
+        label = CDS.get("label")
+        url = CDS.get("url")
+
+        # Condition that excludes unwanted coding sequences (depend on
+        # filtering_sequences variable).
+        if not(any(unwanted_sequence in url for unwanted_sequence in filtering_sequence)):
+            url_CDS.append(url)
+        else:
+            # Print unwanted sequence.
+            print("unwanted sequence url:", url)
+    return url_CDS
 
 if __name__ == "__main__":
     print("Download JGI genomes !")
@@ -95,5 +119,8 @@ if __name__ == "__main__":
     XML_FILE = DATABASE+"_files.xml"
     print("xml file is", XML_FILE)
 
-    # Parser mycocosm xm file.
-    parser_mycocosm_xml(XML_FILE)
+    # Get all coding sequences urls from xml file.
+    ALL_URLS_CDS = get_url_CDS_mycocosm_xml(XML_FILE)
+
+    
+
