@@ -1,5 +1,8 @@
-# Ignore cookie
+# Ignore cookie.
 cookies
 
-# Ignore .xml file
+# Ignore .xml file.
 *.xml
+
+# Ignore results folder.
+results/*

@@ -55,9 +55,9 @@ def download_xml(database, cookie):
     else:
         print("Download {} xml - This take some time ...\n".format(database))
         subprocess.run(["curl \
-                        'https://genome.jgi.doe.gov/portal/ext-api/downloads/get-directory?organism="+database+"' \
-                        -b "+cookie+" \
-                        > "+database+"_files.xml"], shell=True)
+        'https://genome.jgi.doe.gov/portal/ext-api/downloads/get-directory?organism="+database+"' \
+        -b "+cookie+" \
+        > "+database+"_files.xml"], shell=True)
 
     # Remove "&quot" part in the xml file with sed command.
     subprocess.run(["sed -i \'s/&quot;//g\' "+database+"_files.xml"], shell=True)
@@ -97,6 +97,39 @@ def get_url_CDS_mycocosm_xml(xml_file):
             print("unwanted sequence url:", url)
     return url_CDS
 
+def create_folder(path_folder):
+    """ Method to create folder if doesn't exists. """
+
+    if os.path.exists(path_folder):
+        print("{} already exists.".format(path_folder))
+    else:
+        try:
+            os.makedirs(path_folder)
+        except FileExistsError:
+            print("Error to create folder")
+            exit()
+
+def download_database(list_url, database):
+    """ Method to download database from a list of url. """
+
+    # Check if result folder exists.
+    create_folder("results/"+database)
+
+    # Check if the list of url is empty.
+    if not list_url:
+        print("The list of url is empty")
+    else:
+        downloaded_file = list_url[0]
+        print(downloaded_file)
+
+        basename_file = os.path.basename(downloaded_file)
+        print(basename_file)
+
+        subprocess.run(["curl \
+        'https://genome.jgi.doe.gov"+downloaded_file+"' \
+        -b cookies \
+        > results/"+database+"/"+basename_file+" "], shell=True)       
+
 if __name__ == "__main__":
     print("Download JGI genomes !")
 
@@ -122,5 +155,5 @@ if __name__ == "__main__":
     # Get all coding sequences urls from xml file.
     ALL_URLS_CDS = get_url_CDS_mycocosm_xml(XML_FILE)
 
-    
-
+    # Download the database.
+    download_database(ALL_URLS_CDS, DATABASE)
