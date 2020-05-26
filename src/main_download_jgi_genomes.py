@@ -11,19 +11,39 @@ import subprocess
 import os
 import xml.etree.ElementTree as ET
 
+
+def is_cookie(cookie):
+    """ Method that return boolean to verifie if cookie is found or not. """
+
+    if os.path.isfile(cookie):
+        return True
+    else:
+        return False
+
+def is_xml(xml_file):
+    """ Method that return boolean to verifie if download xml file is found. """
+
+    if os.path.isfile(str(xml_file)):
+        print("Dababase with xml file already exists")
+        return True
+    else:
+        return False
+
 #e.g : get_jgi_genomes [-u <username> -p <password>] | [-c <cookies>] [-f | -a | -P 12 | -m 3] (-l)\n\n";
 def arguments():
     """ Method that define all arguments ."""
+
     parser = argparse.ArgumentParser(description="main_download_jgi_genomes.py")
+
     parser.add_argument("-u",
                         help="Username.",
                         type=str)
     parser.add_argument("-p",
                         help="Password.",
                         type=str)
-    # parser.add_argument("-c",
-    #                     help="Cookies.",
-    #                     type=str)
+    parser.add_argument("-c",
+                        help="Cookies.",
+                        type=str)
     parser.add_argument("-db",
                         help="Which databases between : mycocosm, phycocosm,\
                         phytozome or metazome.",
@@ -33,23 +53,37 @@ def arguments():
     #                     help="Only the list xml of database.")
     args = parser.parse_args()
 
-    # Check if all parameters have a value.
-    if not any(vars(args).values()):
-        parser.print_help()
-    return args.u, args.p, args.db
+    # Check if cookie already exits.
+    if args.c is None:
+        default_cookie_name = "cookies"
+        if is_cookie(default_cookie_name) is True:
+            print("Already logged.")
+            args.c = default_cookie_name
+        else:
+            print("Create cookie file with identifiant")
+            download_cookie(username=args.u, password=args.p, cookie=default_cookie_name)
+            args.c = default_cookie_name
+    else:
+        # Create cookie is specific name.
+        print("Create cookie named {}".format(args.c))
+        download_cookie(username=args.u, password=args.p, cookie=args.c)
 
-def download_cookie(username, password):
+    return args.u, args.p, args.c, args.db
+
+def download_cookie(username, password, cookie):
     """ Method to download cookie ."""
+
     subprocess.run(["curl \
     --silent 'https://signon.jgi.doe.gov/signon/create' \
     --data-urlencode \
     'login="+username+"' \
     --data-urlencode \
     'password="+password+"' \
-    -c cookies > /dev/null"], shell=True)
+    -c "+cookie+" > /dev/null"], shell=True)
 
 def download_xml(database, cookie):
     """ Method to download xml file for specific database."""
+
     if os.path.isfile(database+"_file.xml"):
         print(database+"_file.xml already exists !")
     else:
@@ -62,6 +96,26 @@ def download_xml(database, cookie):
     # Remove "&quot" part in the xml file with sed command.
     subprocess.run(["sed -i \'s/&quot;//g\' "+database+"_files.xml"], shell=True)
     print("Download {} xml done !".format(database))
+
+def download_database(list_url, database, cookie):
+    """ Method to download database from a list of url. """
+
+    # Check if result folder exists.
+    create_folder("results/"+str(database))
+
+    # Check if the list of url is empty.
+    if not list_url:
+        print("The list of url is empty")
+    else:
+        downloaded_file = list_url[0]
+        print(downloaded_file)
+
+        basename_file = os.path.basename(downloaded_file)
+
+        subprocess.run(["curl \
+        'https://genome.jgi.doe.gov"+downloaded_file+"' \
+        -b "+cookie+" \
+        > results/"+database+"/"+basename_file+" "], shell=True)
 
 def get_url_CDS_mycocosm_xml(xml_file):
     """ Method that return a list of urls for coding sequences of mycocosm.  """
@@ -90,11 +144,8 @@ def get_url_CDS_mycocosm_xml(xml_file):
 
         # Condition that excludes unwanted coding sequences (depend on
         # filtering_sequences variable).
-        if not(any(unwanted_sequence in url for unwanted_sequence in filtering_sequence)):
+        if not any(unwanted_sequence in url for unwanted_sequence in filtering_sequence):
             url_CDS.append(url)
-        else:
-            # Print unwanted sequence.
-            print("unwanted sequence url:", url)
     return url_CDS
 
 def create_folder(path_folder):
@@ -109,51 +160,21 @@ def create_folder(path_folder):
             print("Error to create folder")
             exit()
 
-def download_database(list_url, database):
-    """ Method to download database from a list of url. """
-
-    # Check if result folder exists.
-    create_folder("results/"+database)
-
-    # Check if the list of url is empty.
-    if not list_url:
-        print("The list of url is empty")
-    else:
-        downloaded_file = list_url[0]
-        print(downloaded_file)
-
-        basename_file = os.path.basename(downloaded_file)
-        print(basename_file)
-
-        subprocess.run(["curl \
-        'https://genome.jgi.doe.gov"+downloaded_file+"' \
-        -b cookies \
-        > results/"+database+"/"+basename_file+" "], shell=True)       
-
 if __name__ == "__main__":
     print("Download JGI genomes !")
 
     # Get all parameters.
-    JGI_USERNAME, JGI_PASSWORD, DATABASE = arguments()
-
-    # Check if cookie already exists.
-    if os.path.isfile("cookies"):
-        print("Already logged.")
-    else:
-        print("Create cookie file with identifiant.")
-        download_cookie(JGI_USERNAME, JGI_PASSWORD)
-
-    # Test to download xml file for fungi database (mycocosm).
-    if os.path.isfile(str(DATABASE)+"_files.xml"):
-        print("Dababase with xml file already exists")
-    else:
-        download_xml(DATABASE, "cookies")
+    JGI_USERNAME, JGI_PASSWORD, COOKIE, DATABASE = arguments()
 
     XML_FILE = DATABASE+"_files.xml"
     print("xml file is", XML_FILE)
+
+    # Check if xml file is already exists.
+    if is_xml(XML_FILE) is False:
+        download_xml(database=DATABASE, cookie=COOKIE)
 
     # Get all coding sequences urls from xml file.
     ALL_URLS_CDS = get_url_CDS_mycocosm_xml(XML_FILE)
 
     # Download the database.
-    download_database(ALL_URLS_CDS, DATABASE)
+    download_database(list_url=ALL_URLS_CDS, database=DATABASE, cookie=COOKIE)
