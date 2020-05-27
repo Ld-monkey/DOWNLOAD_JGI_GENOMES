@@ -6,3 +6,14 @@ cookies
 
 # Ignore results folder.
 results/*
+
+# All txt and csv files.
+*.csv
+*.txt
+
+# results in data folder
+data/*
+
+# Ignore ete3 ncbi database
+taxdump.tar.gz
+

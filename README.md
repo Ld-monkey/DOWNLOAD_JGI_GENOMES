@@ -38,3 +38,8 @@ optional arguments:
               metazome.
   -l L        Only the list xml of database.
 ```
+
+
+## Tasks
+
+    - [ ] Ajouter la possibilité de choisir le chemin de son output.

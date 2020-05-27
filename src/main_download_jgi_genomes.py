@@ -9,6 +9,7 @@ program : main_download_jgi_genomes.py
 import argparse
 import subprocess
 import os
+import csv
 import xml.etree.ElementTree as ET
 
 
@@ -49,11 +50,16 @@ def arguments():
                         phytozome or metazome.",
                         choices=["fungi", "phycocosm"],
                         type=str)
+    parser.add_argument("-out",
+                        help="Output folder of database e.g: results/databases/",
+                        nargs="?",
+                        const="results/"
+                        type=str)
     # parser.add_argument("-l",
     #                     help="Only the list xml of database.")
     args = parser.parse_args()
 
-    # Check if cookie already exits.
+    # Check if cookie already exists.
     if args.c is None:
         default_cookie_name = "cookies"
         if is_cookie(default_cookie_name) is True:
@@ -68,7 +74,7 @@ def arguments():
         print("Create cookie named {}".format(args.c))
         download_cookie(username=args.u, password=args.p, cookie=args.c)
 
-    return args.u, args.p, args.c, args.db
+    return args.u, args.p, args.c, args.db, args.out
 
 def download_cookie(username, password, cookie):
     """ Method to download cookie ."""
@@ -97,11 +103,11 @@ def download_xml(database, cookie):
     subprocess.run(["sed -i \'s/&quot;//g\' "+database+"_files.xml"], shell=True)
     print("Download {} xml done !".format(database))
 
-def download_database(list_url, database, cookie):
+def download_database(list_url, database, cookie, path_output_folder):
     """ Method to download database from a list of url. """
-
+    
     # Check if result folder exists.
-    create_folder("results/"+str(database))
+    create_folder(path_output_folder+str(database))
 
     # Check if the list of url is empty.
     if not list_url:
@@ -115,8 +121,9 @@ def download_database(list_url, database, cookie):
         subprocess.run(["curl \
         'https://genome.jgi.doe.gov"+downloaded_file+"' \
         -b "+cookie+" \
-        > results/"+database+"/"+basename_file+" "], shell=True)
+        > "+path_output_folder+database+"/"+basename_file+" "], shell=True)
 
+# Doit différencier la création d'un csv a celui du retour de url.
 def get_url_CDS_mycocosm_xml(xml_file):
     """ Method that return a list of urls for coding sequences of mycocosm.  """
 
@@ -126,6 +133,7 @@ def get_url_CDS_mycocosm_xml(xml_file):
 
     # List with all urls of coding sequences of mycocosm.
     url_CDS = list()
+    label_CDS = list()
 
     # Filtering all sequences that we don't want.
     filtering_sequence = ["primary", "secondary", "alleles", "diploid", "old"]
@@ -137,15 +145,28 @@ def get_url_CDS_mycocosm_xml(xml_file):
         '/folder[@name="Filtered Models (best)"]'\
         '/folder[@name="CDS"]'
 
-    # For each coding sequence recover all urls attributes.
-    for CDS in root.find(query_coding_sequence):
-        label = CDS.get("label")
-        url = CDS.get("url")
+    with open("all_organisms.csv", mode="w") as csv_file:
+        fieldnames = ["organisms", "jgi_fullname", "jgi_basename", "ncbi_id_taxonomy"]
+        csv_write = csv.writer(csv_file,
+                               delimiter=",",
+                               quotechar='"',
+                               quoting=csv.QUOTE_MINIMAL)
+        # Write csv header.
+        csv_write.writerow(fieldnames)
 
-        # Condition that excludes unwanted coding sequences (depend on
-        # filtering_sequences variable).
-        if not any(unwanted_sequence in url for unwanted_sequence in filtering_sequence):
-            url_CDS.append(url)
+        # For each coding sequence recover all urls attributes.
+        for CDS in root.find(query_coding_sequence):
+            label = CDS.get("label")
+            url = CDS.get("url")
+            jgi_fullname = CDS.get("filename")
+            jgi_basename = os.path.splitext(jgi_fullname)[0]
+
+            # Condition that excludes unwanted coding sequences (depend on
+            # filtering_sequences variable).
+            if not any(unwanted_sequence in url for unwanted_sequence in filtering_sequence):
+                url_CDS.append(url)
+                csv_write.writerow([label, jgi_fullname, jgi_basename])
+
     return url_CDS
 
 def create_folder(path_folder):
@@ -164,7 +185,7 @@ if __name__ == "__main__":
     print("Download JGI genomes !")
 
     # Get all parameters.
-    JGI_USERNAME, JGI_PASSWORD, COOKIE, DATABASE = arguments()
+    JGI_USERNAME, JGI_PASSWORD, COOKIE, DATABASE, PATH_DB_OUTPUT = arguments()
 
     XML_FILE = DATABASE+"_files.xml"
     print("xml file is", XML_FILE)
@@ -177,4 +198,7 @@ if __name__ == "__main__":
     ALL_URLS_CDS = get_url_CDS_mycocosm_xml(XML_FILE)
 
     # Download the database.
-    download_database(list_url=ALL_URLS_CDS, database=DATABASE, cookie=COOKIE)
+    download_database(list_url=ALL_URLS_CDS,
+                      database=DATABASE,
+                      cookie=COOKIE,
+                      path_output_folder=PATH_DB_OUTPUT)
