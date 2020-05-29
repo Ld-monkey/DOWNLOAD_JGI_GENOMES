@@ -41,9 +41,6 @@ def add_ncbi_id_taxonym_in_csv(csv_file, output_csv_name):
              # Count the number of line.
              count_line = 0
 
-             # The flag for while condition.
-             flag = False
-
              # For each row in csv file.
              for row in csv_read:
                  # For the first line with fieldline just copy.
@@ -51,30 +48,54 @@ def add_ncbi_id_taxonym_in_csv(csv_file, output_csv_name):
                      csv_writer.writerow(row)
                  else:
                      # Definie specie with the first column of csv.
+                     print("---------------------------")
                      specie = [str(row[0])]
-
+                     print("Specie:", specie)
+                     
                      # Try to find a taxonomic id from ncbi.
                      ncbi_id_taxid = ncbi.get_name_translator(specie)
+                     print("id:", ncbi_id_taxid)
 
                      # Check if dictonnary with taxonomic id is empty in rare cases.
                      if bool(ncbi_id_taxid) is False:
+
+                         print("-----------")
+                         # The flag for while condition.
+                         flag = False
+                         print("on a pas trouvé l'id dans un premier temps")
+                         print("flag=", flag)
+                         print("type flag=",type(flag))
+
                          # Split the end name of specie to search less specific taxon.
                          row_name_split = specie[0].rsplit(" ", 1)[0]
+                         print("specie:", row_name_split)
 
+                         print("juste avant la loop.")
                          while flag is False:
+                             print("je rentre dans la loop")
                              # Try to find a taxonomic id from ncbi.
-                             ncbi_id_taxid = ncbi.get_name_translator([str(row_name_split)])
-                             print("id", ncbi_id_taxid)
+                             ncbi_id_taxid = ncbi.get_name_translator([row_name_split])
+                             print("id: ", ncbi_id_taxid)
+
                              # Check if in this case id taxonomic was found.
                              if bool(ncbi_id_taxid) is True:
-                                 ncbi_id = ncbi_id_taxid.get(str(row_name_split))[0] 
+                                 print("-----")
+                                 print("on marque identifiant")
+                                 print("specie", ncbi_id_taxid)
+                                 ncbi_id = ncbi_id_taxid.get(str(row_name_split))[0]
+                                 print("id", ncbi_id)
                                  row.append(ncbi_id)
                                  csv_writer.writerow(row)
                                  flag = True
                              elif bool(ncbi_id_taxid) is False and len(row_name_split.split()) != 1:
+                                 print("-----")
+                                 print("on raccourcie encore ...")
                                  # Split again to search older taxonomic.
                                  row_name_split = row_name_split.rsplit(" ", 1)[0]
+                                 print("specie :", row_name_split)
                              else:
+                                 print("-----")
+                                 print("c'est un fail pour id on quitte")
                                  # Finaly if nothing was found quit the loop in write
                                  # blank in the line.
                                  row.append("")
@@ -100,6 +121,7 @@ def add_ncbi_id_in_fasta(complete_csv_file, path_sequence):
             try:
                 # Replace jdi id to ncbi taxonic.
                 with open(path_sequence+row[2], "r") as fasta_read:
+                    print("Fasta :", path_sequence+row[2])
                     with open(path_sequence+row[2]+".out", "w") as fasta_file_write:
                         for line in fasta_read:
                             if line.startswith(">") is True:
@@ -133,9 +155,6 @@ if __name__ == "__main__":
 
     # Name of output csv.
     output_csv = "output_fungi_csv.csv"
-
-    id = ncbi.get_name_translator(["Coccidioides immitis RS"])
-    print("id test:", id)
 
     # Complete de csv file with ncbi taxonomic id.
     add_ncbi_id_taxonym_in_csv(csv_file=CSV_FILE,

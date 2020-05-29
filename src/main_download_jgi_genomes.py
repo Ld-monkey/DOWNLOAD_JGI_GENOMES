@@ -53,7 +53,7 @@ def arguments():
     parser.add_argument("-out",
                         help="Output folder of database e.g: results/databases/",
                         nargs="?",
-                        const="results/"
+                        const="results/",
                         type=str)
     # parser.add_argument("-l",
     #                     help="Only the list xml of database.")
@@ -99,13 +99,19 @@ def download_xml(database, cookie):
         -b "+cookie+" \
         > "+database+"_files.xml"], shell=True)
 
+    print("Download {} xml done !".format(database))
+
     # Remove "&quot" part in the xml file with sed command.
     subprocess.run(["sed -i \'s/&quot;//g\' "+database+"_files.xml"], shell=True)
-    print("Download {} xml done !".format(database))
+    print("Remove &quot")
+
+    # Give 664 permission of xml file for Debian bug.
+    os.chmod(database+"_files.xml", 0o664)
 
 def download_database(list_url, database, cookie, path_output_folder):
     """ Method to download database from a list of url. """
-    
+
+    print("Donwloading database !")
     # Check if result folder exists.
     create_folder(path_output_folder+str(database))
 
@@ -113,15 +119,15 @@ def download_database(list_url, database, cookie, path_output_folder):
     if not list_url:
         print("The list of url is empty")
     else:
-        downloaded_file = list_url[0]
-        print(downloaded_file)
+        for downloaded_file in list_url:
+            print(downloaded_file)
 
-        basename_file = os.path.basename(downloaded_file)
+            basename_file = os.path.basename(downloaded_file)
 
-        subprocess.run(["curl \
-        'https://genome.jgi.doe.gov"+downloaded_file+"' \
-        -b "+cookie+" \
-        > "+path_output_folder+database+"/"+basename_file+" "], shell=True)
+            subprocess.run(["curl \
+            'https://genome.jgi.doe.gov"+downloaded_file+"' \
+            -b "+cookie+" \
+            > "+path_output_folder+database+"/"+basename_file+" "], shell=True)
 
 # Doit différencier la création d'un csv a celui du retour de url.
 def get_url_CDS_mycocosm_xml(xml_file):
